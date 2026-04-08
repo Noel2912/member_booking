@@ -1,0 +1,28 @@
+<section id="features" class="pane">
+    <div class="page-title">Application Features & Help</div>
+
+    <div class="list">
+        <div class="section-title">Overview</div>
+        <p>This application provides a simple booking system for FLC members. Use the navigation to view members and lessons, book lessons, manage bookings, and run monthly reports.</p>
+
+        <div class="section-title">Main Features</div>
+        <ul>
+            <li><strong>Members:</strong> View and search members. The members table is used to populate the booking form.</li>
+            <li><strong>Lessons:</strong> Browse all lessons in a table. Use filters (day, exercise) and quick search to narrow results. Click <em>Select</em> on a lesson to pre-fill the booking form.</li>
+            <li><strong>Book:</strong> Choose a member and lesson ID (auto-filled from Lessons) to create a booking.</li>
+            <li><strong>Manage Booking:</strong> Change, cancel, or mark attendance (with rating & review) for bookings.</li>
+            <li><strong>Reports:</strong> Generate monthly lesson and income reports.</li>
+        </ul>
+
+        <div class="section-title">Notes & Tips</div>
+        <ul>
+            <li>The header and footer are fixed; the main content area between them scrolls independently.</li>
+            <li>Filters on the Lessons panel include client-side Apply (combines day/exercise/free-text) and a Refresh button that fetches the latest data from the server.</li>
+            <li>If a lesson's seats are 0, the system will still allow selecting the lesson but booking may fail depending on server-side validation.</li>
+            <li>For support, contact <em>support@flc.example</em>.</li>
+        </ul>
+
+        <div class="section-title">Endpoints used</div>
+        <p class="muted-small">(For reference) The UI uses these API endpoints: <code>/api/members</code>, <code>/api/lessons</code>, <code>/api/bookings</code>, and reporting endpoints under <code>/api/reports</code>.</p>
+    </div>
+</section>

@@ -1,19 +1,25 @@
 package com.flc.memberbooking.model;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "members")
 public class Member {
-    private static final AtomicInteger ID_SEQ = new AtomicInteger(1);
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    private final int id;
-    private final String name;
+    @Column(nullable = false)
+    private String name;
+
+    // JPA requires a no-arg constructor
+    protected Member() {}
 
     public Member(String name) {
-        this.id = ID_SEQ.getAndIncrement();
         this.name = name;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

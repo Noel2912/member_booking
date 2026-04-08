@@ -1,29 +1,40 @@
 package com.flc.memberbooking.model;
 
+import jakarta.persistence.*;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Represents a booking of a member into a lesson.
  */
+@Entity
+@Table(name = "bookings")
 public class Booking {
-    private static final AtomicInteger ID_SEQ = new AtomicInteger(1000);
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    private final int id;
-    private final Member member;
+    @ManyToOne(optional = false)
+    private Member member;
+
+    @ManyToOne
     private Lesson lesson;
+
+    @Enumerated(EnumType.STRING)
     private BookingStatus status;
+
     private String review;
+
     private Integer rating; // 1..5
 
+    protected Booking() {}
+
     public Booking(Member member, Lesson lesson) {
-        this.id = ID_SEQ.getAndIncrement();
         this.member = member;
         this.lesson = lesson;
         this.status = BookingStatus.BOOKED;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -68,6 +79,6 @@ public class Booking {
 
     @Override
     public String toString() {
-        return "Booking{" + id + ", member=" + member.getName() + ", lesson=" + lesson.getDisplayName() + ", status=" + status + '}';
+        return "Booking{" + id + ", member=" + member.getName() + ", lesson=" + (lesson != null ? lesson.getDisplayName() : "null") + ", status=" + status + '}';
     }
 }

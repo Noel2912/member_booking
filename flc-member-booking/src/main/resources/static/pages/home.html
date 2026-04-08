@@ -1,0 +1,38 @@
+<section id="home" class="pane">
+    <div class="grid">
+        <div>
+            <div class="section-title">Members</div>
+            <div class="list">
+                <div class="members-controls">
+                    <input id="members-search" placeholder="Search members...">
+                    <button id="refresh-members">Refresh</button>
+                </div>
+                <table id="members-table" class="compact-table">
+                    <thead><tr><th>ID</th><th>Name</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div>
+            <div class="section-title">All Lessons</div>
+            <div class="list">
+                <div class="lessons-controls">
+                    <div>
+                        <label>Day: </label>
+                        <select id="day-filter"><option value="">All</option><option>Saturday</option><option>Sunday</option></select>
+                        <label style="margin-left:8px">Exercise: </label>
+                        <input id="exercise-filter" placeholder="Yoga">
+                        <button id="apply-filters">Apply</button>
+                        <button id="refresh-lessons" style="margin-left:6px">Refresh</button>
+                    </div>
+                    <div style="margin-top:6px">
+                        <input id="lessons-search" placeholder="Quick search (id, type, time)">
+                    </div>
+                </div>
+                <div id="lessons-list" class="table-wrap">
+                    <!-- lessons table will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
