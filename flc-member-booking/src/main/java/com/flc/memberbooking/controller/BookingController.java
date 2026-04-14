@@ -1,14 +1,15 @@
-package com.flc.memberbooking;
+package com.flc.memberbooking.controller;
 
-import com.flc.memberbooking.api.*;
-import com.flc.memberbooking.api.requests.*;
 import com.flc.memberbooking.model.*;
+import com.flc.memberbooking.service.BookingSystem;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @RestController
@@ -41,11 +42,28 @@ public class BookingController {
         return system.viewByExercise(exercise).stream().map(this::toLessonDto).collect(Collectors.toList());
     }
 
+    @GetMapping("/exercises")
+    public List<LessonTypeDto> exercises() {
+        return Arrays.stream(com.flc.memberbooking.model.LessonType.values())
+                .map(t -> new LessonTypeDto(t.name(), t.getDisplayName(), t.getPrice().doubleValue()))
+                .collect(Collectors.toList());
+    }
+
     @PostMapping("/bookings")
     public ResponseEntity<?> book(@RequestBody BookRequest req) {
+        String reason = system.bookingFailureReason(req.getMemberId(), req.getLessonId());
+        if (reason != null) {
+            if ("duplicate".equals(reason)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("already booked");
+            }
+            if ("full".equals(reason)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Booking failed (full)");
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Booking failed (invalid)");
+        }
         var maybe = system.bookLesson(req.getMemberId(), req.getLessonId());
         if (maybe.isPresent()) return ResponseEntity.status(HttpStatus.CREATED).body(toBookingDto(maybe.get()));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Booking failed (invalid/duplicate/full)");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Booking failed");
     }
 
     @GetMapping("/bookings/{id}")
@@ -55,6 +73,11 @@ public class BookingController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Booking not found");
         }
         return ResponseEntity.ok(toBookingDto(b.get()));
+    }
+
+    @GetMapping("/bookings")
+    public List<BookingDto> bookings() {
+        return system.getAllBookings().stream().map(this::toBookingDto).collect(Collectors.toList());
     }
 
     @PutMapping("/bookings/{id}/change")

@@ -1,4 +1,4 @@
-package com.flc.memberbooking.api.requests;
+package com.flc.memberbooking.model;
 
 public class BookRequest {
     private int memberId;

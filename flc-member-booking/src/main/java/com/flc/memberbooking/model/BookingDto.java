@@ -1,6 +1,4 @@
-package com.flc.memberbooking.api;
-
-import com.flc.memberbooking.model.BookingStatus;
+package com.flc.memberbooking.model;
 
 public class BookingDto {
     private int id;

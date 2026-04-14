@@ -1,4 +1,4 @@
-package com.flc.memberbooking;
+package com.flc.memberbooking.service;
 
 import com.flc.memberbooking.model.*;
 import com.flc.memberbooking.repository.BookingRepository;
@@ -90,9 +90,28 @@ public class BookingSystem {
         return Optional.of(b);
     }
 
+    /**
+     * Return a short failure reason for attempting to book ("invalid","duplicate","full")
+     * or null when booking should proceed.
+     */
+    public String bookingFailureReason(int memberId, String lessonId) {
+        Optional<Member> m = memberRepository.findById(memberId);
+        Optional<Lesson> lessonOpt = lessonRepository.findById(lessonId);
+        if (m.isEmpty() || lessonOpt.isEmpty()) return "invalid";
+        Member member = m.get();
+        Lesson lesson = lessonOpt.get();
+        boolean dup = bookingRepository.existsByMemberAndLessonAndStatusNot(member, lesson, BookingStatus.CANCELLED);
+        if (dup) return "duplicate";
+        long current = bookingRepository.countByLessonAndStatusNot(lesson, BookingStatus.CANCELLED);
+        if (lesson.getCapacity() - current <= 0) return "full";
+        return null;
+    }
+
     public Optional<Booking> findBooking(int bookingId) {
         return bookingRepository.findById(bookingId);
     }
+
+    public List<Booking> getAllBookings() { return bookingRepository.findAll(); }
 
     public boolean changeBooking(int bookingId, String newLessonId) {
         Optional<Booking> ob = bookingRepository.findById(bookingId);

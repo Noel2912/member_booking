@@ -1,4 +1,4 @@
-package com.flc.memberbooking.api;
+package com.flc.memberbooking.model;
 
 public class MemberDto {
     private int id;

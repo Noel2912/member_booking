@@ -47,6 +47,23 @@ $(function(){
         });
         table.append(tbody);
         container.append(table);
+        // also update the booking form lesson select so user can pick when booking
+        populateBookLessonSelect(lessonsCache);
+    }
+
+    function populateBookLessonSelect(list){
+        const sel = $('#book-lesson-id');
+        if(sel.length===0) return; // page not loaded
+        sel.empty();
+        sel.append($('<option>').val('').text('Select lesson...'));
+        (list || []).forEach(l => {
+            const label = l.id + ' - ' + (l.type || '') + (l.date ? ' ' + l.date : '') + (l.timeSlot ? ' ' + l.timeSlot : '');
+            sel.append($('<option>').val(l.id).text(label));
+        });
+        if(selectedLessonForBooking){
+            sel.val(selectedLessonForBooking);
+            selectedLessonForBooking = null;
+        }
     }
 
     function loadLessons(){
@@ -89,44 +106,112 @@ $(function(){
                 });
                 $('#lessons-search').off('input').on('input', function(){ $('#apply-filters').click(); });
 
-                // initial data load for home
-                loadMembers();
-                loadLessons();
+                // load exercise types into dropdown and initial data load for home
+                $.get('/api/exercises', function(data){
+                    const sel = $('#exercise-filter').empty();
+                    sel.append($('<option>').val('').text('All'));
+                    data.forEach(e => {
+                        // e.displayName and e.price expected from server
+                        sel.append($('<option>').val(e.displayName).text(e.displayName + ' - £' + e.price));
+                    });
+                }).fail(function(){
+                    // if exercise list fails to load, leave default 'All'
+                }).always(function(){
+                    loadMembers();
+                    loadLessons();
+                });
             }
 
             if(id === 'book'){
                 // ensure members select is populated
                 loadMembers();
-                // pre-fill lesson id if selected
-                if(selectedLessonForBooking){
-                    $('#book-lesson-id').val(selectedLessonForBooking);
-                    selectedLessonForBooking = null;
+                // populate lesson select from cache if available, otherwise load lessons
+                if(lessonsCache && lessonsCache.length>0){
+                    populateBookLessonSelect(lessonsCache);
+                } else {
+                    loadLessons();
                 }
                 $('#book-form').off('submit').on('submit', function(e){
                     e.preventDefault();
                     const body = { memberId: Number($('#book-member').val()), lessonId: $('#book-lesson-id').val().trim() };
-                    $('#book-result').text('Booking...');
+                    $('#book-result').css('color','').text('Booking...');
                     $.ajax({url:'/api/bookings', method:'POST', contentType:'application/json', data: JSON.stringify(body)})
-                        .done(function(resp){ $('#book-result').text('Booked: '+resp.id); loadLessons(); })
-                        .fail(function(xhr){ $('#book-result').text('Failed: '+xhr.responseText); });
+                        .done(function(resp){ $('#book-result').css('color','').text('Booked: '+resp.id); loadLessons(); })
+                        .fail(function(xhr){
+                            const text = (xhr && xhr.responseText) ? xhr.responseText : 'Booking failed';
+                            if (text.toLowerCase().indexOf('already booked') !== -1 || text.toLowerCase().indexOf('duplicate') !== -1) {
+                                $('#book-result').css('color','red').text('already booked');
+                            } else {
+                                $('#book-result').css('color','red').text('Failed: '+text);
+                            }
+                        });
                 });
             }
 
             if(id === 'manage'){
+                // populate booking and lesson selects for manage actions
+                function populateManageLists(){
+                    // load bookings
+                    $.get('/api/bookings', function(bookings){
+                        // only include non-cancelled bookings for actions
+                        const active = (bookings || []).filter(b => b.status !== 'CANCELLED');
+                        const opts = active.map(b => ({id: b.id, label: b.id + ': ' + (b.member ? b.member.name : '') + ' - lesson ' + b.lessonId}));
+                        const changeSel = $('#change-booking-id');
+                        const cancelSel = $('#cancel-booking-id');
+                        const attendSel = $('#attend-booking-id');
+                        [changeSel, cancelSel, attendSel].forEach(s => { s.empty(); s.append($('<option>').val('').text('Select booking...')); });
+                        opts.forEach(o => {
+                            const option = $('<option>').val(o.id).text(o.label);
+                            changeSel.append(option.clone());
+                            cancelSel.append(option.clone());
+                            attendSel.append(option.clone());
+                        });
+                    }).fail(function(){
+                        // clear selects on failure
+                        $('#change-booking-id').empty();
+                        $('#cancel-booking-id').empty();
+                        $('#attend-booking-id').empty();
+                    });
+
+                    // load lessons for change-new-lesson select
+                    if(lessonsCache && lessonsCache.length>0){
+                        const list = lessonsCache;
+                        const sel = $('#change-new-lesson').empty();
+                        sel.append($('<option>').val('').text('Select lesson...'));
+                        list.forEach(l => {
+                            const label = l.id + ' - ' + (l.type || '') + (l.date ? ' ' + l.date : '') + (l.timeSlot ? ' ' + l.timeSlot : '');
+                            sel.append($('<option>').val(l.id).text(label));
+                        });
+                    } else {
+                        $.get('/api/lessons', function(list){
+                            const sel = $('#change-new-lesson').empty();
+                            sel.append($('<option>').val('').text('Select lesson...'));
+                            (list || []).forEach(l => {
+                                const label = l.id + ' - ' + (l.type || '') + (l.date ? ' ' + l.date : '') + (l.timeSlot ? ' ' + l.timeSlot : '');
+                                sel.append($('<option>').val(l.id).text(label));
+                            });
+                        });
+                    }
+                }
+
+                populateManageLists();
+
                 $('#change-booking').off('click').on('click', function(){
                     const id = Number($('#change-booking-id').val());
-                    const newId = $('#change-new-lesson').val().trim();
+                    const newId = $('#change-new-lesson').val();
+                    if(!id || !newId){ $('#change-result').text('Please select booking and new lesson'); return; }
                     $('#change-result').text('Changing...');
                     $.ajax({url:'/api/bookings/'+id+'/change', method:'PUT', contentType:'application/json', data: JSON.stringify({newLessonId:newId})})
-                        .done(d=>$('#change-result').text('Changed'))
+                        .done(function(){ $('#change-result').text('Changed'); populateManageLists(); loadLessons(); })
                         .fail(xhr=>$('#change-result').text('Failed: '+xhr.responseText));
                 });
 
                 $('#cancel-booking').off('click').on('click', function(){
                     const id = Number($('#cancel-booking-id').val());
+                    if(!id){ $('#cancel-result').text('Please select booking'); return; }
                     $('#cancel-result').text('Cancelling...');
                     $.ajax({url:'/api/bookings/'+id, method:'DELETE'})
-                        .done(d=>$('#cancel-result').text('Cancelled'))
+                        .done(function(){ $('#cancel-result').text('Cancelled'); populateManageLists(); loadLessons(); })
                         .fail(xhr=>$('#cancel-result').text('Failed: '+xhr.responseText));
                 });
 
@@ -134,9 +219,10 @@ $(function(){
                     const id = Number($('#attend-booking-id').val());
                     const rating = Number($('#attend-rating').val());
                     const review = $('#attend-review').val();
+                    if(!id){ $('#attend-result').text('Please select booking'); return; }
                     $('#attend-result').text('Marking attended...');
                     $.ajax({url:'/api/bookings/'+id+'/attend', method:'POST', contentType:'application/json', data: JSON.stringify({rating:rating, review:review})})
-                        .done(d=>$('#attend-result').text('Marked attended'))
+                        .done(function(){ $('#attend-result').text('Marked attended'); populateManageLists(); loadLessons(); })
                         .fail(xhr=>$('#attend-result').text('Failed: '+xhr.responseText));
                 });
             }

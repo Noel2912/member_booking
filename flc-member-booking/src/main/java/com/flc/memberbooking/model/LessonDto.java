@@ -1,4 +1,4 @@
-package com.flc.memberbooking.api;
+package com.flc.memberbooking.model;
 
 import java.time.LocalDate;
 import com.flc.memberbooking.model.TimeSlot;

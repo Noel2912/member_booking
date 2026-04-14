@@ -2,23 +2,36 @@
     <div class="page-title">Change / Cancel / Attend</div>
     <div class="card">
         <div class="card-title">Change Booking</div>
-        <input id="change-booking-id" placeholder="Booking id">
-        <input id="change-new-lesson" placeholder="New lesson id">
+        <label for="change-booking-id">Select booking:</label>
+        <select id="change-booking-id"></select>
+        <label for="change-new-lesson">Select new lesson:</label>
+        <select id="change-new-lesson"></select>
         <button id="change-booking">Change</button>
         <div id="change-result" class="result"></div>
     </div>
 
     <div class="card">
         <div class="card-title">Cancel Booking</div>
-        <input id="cancel-booking-id" placeholder="Booking id">
+        <label for="cancel-booking-id">Select booking:</label>
+        <select id="cancel-booking-id"></select>
         <button id="cancel-booking">Cancel</button>
         <div id="cancel-result" class="result"></div>
     </div>
 
     <div class="card">
         <div class="card-title">Attend Booking (leave review)</div>
-        <input id="attend-booking-id" placeholder="Booking id">
-        <input id="attend-rating" placeholder="Rating 1-5">
+        <label for="attend-booking-id">Select booking:</label>
+        <select id="attend-booking-id"></select>
+        <label for="attend-rating">Rating:</label>
+        <select id="attend-rating">
+            <option value="">Select...</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        <label for="attend-review">Review:</label>
         <input id="attend-review" placeholder="Review text">
         <button id="attend-booking">Attend</button>
         <div id="attend-result" class="result"></div>
