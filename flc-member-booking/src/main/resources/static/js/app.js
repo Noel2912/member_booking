@@ -233,9 +233,26 @@ $(function(){
                     $('#report-result').text('Loading...');
                     $.get('/api/reports/month/'+m+'/lessons').done(function(data){
                         const out = $('#report-result').empty();
+                        // flatten lessons to find the highest income session
+                        let all = [];
+                        Object.entries(data).forEach(([date, lessons]) => { lessons.forEach(l => { l._date = date; all.push(l); }); });
+                        let maxIncome = 0;
+                        all.forEach(l => { if (l.income && l.income > maxIncome) maxIncome = l.income; });
+                        // render grouped by date
                         Object.entries(data).forEach(([date, lessons]) => {
                             out.append($('<h4>').text(date));
-                            lessons.forEach(l => out.append($('<div>').text(l.id+' - '+l.type+' - seats:'+l.availableSeats)));
+                            lessons.forEach(l => {
+                                const avg = (l.averageRating===null||l.averageRating===undefined)?'N/A':Number(l.averageRating).toFixed(2);
+                                const div = $('<div>').addClass('report-lesson');
+                                let text = l.id + ' - ' + l.type + ' - attended:' + (l.attendedCount||0) + ' - avgRating:' + avg + ' - income: £' + (l.income||0).toFixed(2);
+                                div.text(text);
+                                // highlight highest income session(s)
+                                if (l.income && Math.abs(l.income - maxIncome) < 0.0001 && maxIncome > 0) {
+                                    // append a star icon
+                                    div.append($('<span>').addClass('star').css({'color':'gold','margin-left':'8px'}).text('★'));
+                                }
+                                out.append(div);
+                            });
                         });
                     }).fail(xhr=>$('#report-result').text('Failed: '+xhr.responseText));
                 });

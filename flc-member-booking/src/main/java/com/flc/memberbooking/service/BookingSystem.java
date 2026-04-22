@@ -30,6 +30,8 @@ public class BookingSystem {
         // seed initial data if empty
         if (memberRepository.count() == 0) seedMembers();
         if (lessonRepository.count() == 0) seedLessons();
+        // seed some bookings so the application has data for reports on startup
+        if (bookingRepository.count() == 0) seedBookings();
     }
 
     private void seedMembers() {
@@ -61,6 +63,54 @@ public class BookingSystem {
             String id = String.format("W%02d-%s-%s", weekendNumber, date.getDayOfWeek().toString().substring(0,3), slots[i].toString().substring(0,1));
             Lesson lesson = new Lesson(id, type, date, slots[i]);
             lessonRepository.save(lesson);
+        }
+    }
+
+    /**
+     * Create a set of bookings across lessons and members so the app has
+     * realistic data for reports immediately after startup.
+     * This seeds a mix of ATTENDED (with reviews/ratings), BOOKED and CANCELLED bookings.
+     */
+    private void seedBookings() {
+        List<Member> members = memberRepository.findAll();
+        List<Lesson> lessons = lessonRepository.findAll();
+        if (members.isEmpty() || lessons.isEmpty()) return;
+        int mcount = members.size();
+        for (int i = 0; i < lessons.size(); i++) {
+            Lesson l = lessons.get(i);
+            // pattern to produce a variety of statuses and ratings
+            if (i % 3 == 0) {
+                // two attended with high ratings
+                Booking b1 = new Booking(members.get((i * 2) % mcount), l);
+                b1.setStatus(BookingStatus.ATTENDED);
+                b1.setReview("Excellent class");
+                b1.setRating(5);
+                bookingRepository.save(b1);
+
+                Booking b2 = new Booking(members.get((i * 2 + 1) % mcount), l);
+                b2.setStatus(BookingStatus.ATTENDED);
+                b2.setReview("Really enjoyed it");
+                b2.setRating(4);
+                bookingRepository.save(b2);
+            } else if (i % 3 == 1) {
+                // several booked (not yet attended)
+                for (int k = 0; k < 3; k++) {
+                    Booking b = new Booking(members.get((i + k) % mcount), l);
+                    b.setStatus(BookingStatus.BOOKED);
+                    bookingRepository.save(b);
+                }
+            } else {
+                // one cancelled and one attended with mediocre rating
+                Booking b1 = new Booking(members.get(i % mcount), l);
+                b1.setStatus(BookingStatus.CANCELLED);
+                bookingRepository.save(b1);
+
+                Booking b2 = new Booking(members.get((i + 1) % mcount), l);
+                b2.setStatus(BookingStatus.ATTENDED);
+                b2.setReview("It was ok");
+                b2.setRating(3);
+                bookingRepository.save(b2);
+            }
         }
     }
 

@@ -1,24 +1,27 @@
 package com.flc.memberbooking.model;
 
 import java.time.LocalDate;
-import com.flc.memberbooking.model.TimeSlot;
 
-public class LessonDto {
+public class LessonReportDto {
     private String id;
     private String type;
     private LocalDate date;
     private TimeSlot timeSlot;
-    private int availableSeats;
+    private int attendedCount;
+    private Double averageRating; // nullable
+    private double income;
     private double price;
 
-    public LessonDto() {}
+    public LessonReportDto() {}
 
-    public LessonDto(String id, String type, LocalDate date, TimeSlot timeSlot, int availableSeats, double price) {
+    public LessonReportDto(String id, String type, LocalDate date, TimeSlot timeSlot, int attendedCount, Double averageRating, double income, double price) {
         this.id = id;
         this.type = type;
         this.date = date;
         this.timeSlot = timeSlot;
-        this.availableSeats = availableSeats;
+        this.attendedCount = attendedCount;
+        this.averageRating = averageRating;
+        this.income = income;
         this.price = price;
     }
 
@@ -26,14 +29,16 @@ public class LessonDto {
     public void setId(String id) { this.id = id; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
-    // backward-compatible accessor expected by some clients/tests
-    public String getExercise() { return type; }
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
     public TimeSlot getTimeSlot() { return timeSlot; }
     public void setTimeSlot(TimeSlot timeSlot) { this.timeSlot = timeSlot; }
-    public int getAvailableSeats() { return availableSeats; }
-    public void setAvailableSeats(int availableSeats) { this.availableSeats = availableSeats; }
+    public int getAttendedCount() { return attendedCount; }
+    public void setAttendedCount(int attendedCount) { this.attendedCount = attendedCount; }
+    public Double getAverageRating() { return averageRating; }
+    public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
+    public double getIncome() { return income; }
+    public void setIncome(double income) { this.income = income; }
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
 }

@@ -104,7 +104,10 @@ public class BookingController {
     @GetMapping("/reports/month/{month}/lessons")
     public ResponseEntity<?> monthlyLessonReport(@PathVariable int month) {
         var map = system.monthlyLessonStats(month);
-        var out = map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().stream().map(this::toLessonDto).collect(Collectors.toList())));
+        var out = map.entrySet().stream().collect(Collectors.toMap(
+                e -> e.getKey().toString(),
+                e -> e.getValue().stream().map(this::toLessonReportDto).collect(Collectors.toList())
+        ));
         return ResponseEntity.ok(out);
     }
 
@@ -116,6 +119,14 @@ public class BookingController {
 
     private LessonDto toLessonDto(Lesson l) {
         return new LessonDto(l.getId(), l.getType().getDisplayName(), l.getDate(), l.getTimeSlot(), l.availableSeats(), l.getType().getPrice().doubleValue());
+    }
+
+    private LessonReportDto toLessonReportDto(Lesson l) {
+        int attended = (int) l.getBookings().stream().filter(b -> b.getStatus() == BookingStatus.ATTENDED).count();
+        Double avg = l.averageRating().isPresent() ? l.averageRating().getAsDouble() : null;
+        double income = l.totalIncome();
+        double price = l.getType().getPrice().doubleValue();
+        return new LessonReportDto(l.getId(), l.getType().getDisplayName(), l.getDate(), l.getTimeSlot(), attended, avg, income, price);
     }
 
     private BookingDto toBookingDto(Booking b) {

@@ -1,0 +1,104 @@
+@startuml
+' flc-member-booking UML class diagram (generated)
+skinparam classAttributeIconSize 0
+
+package "model" {
+  class Member {
+    +Integer id
+    +String name
+  }
+
+  class Booking {
+    +Integer id
+    +BookingStatus status
+    +String review
+    +Integer rating
+    +Member member
+    +Lesson lesson
+  }
+
+  class Lesson {
+    +String id
+    +LessonType type
+    +LocalDate date
+    +TimeSlot timeSlot
+    +int capacity
+    +List<Booking> bookings
+    +int availableSeats()
+    +double totalIncome()
+  }
+
+  enum LessonType
+  enum TimeSlot
+  enum BookingStatus
+
+  class BookingDto {
+    +Integer id
+    +MemberDto member
+    +String lessonId
+    +BookingStatus status
+    +String review
+    +Integer rating
+  }
+
+  class MemberDto {
+    +Integer id
+    +String name
+  }
+
+  class LessonDto {
+    +String id
+    +String type
+    +LocalDate date
+    +TimeSlot timeSlot
+    +int availableSeats
+    +double price
+  }
+
+  class BookRequest {
+    +int memberId
+    +String lessonId
+  }
+
+  class ChangeRequest {
+    +String newLessonId
+  }
+
+  class AttendRequest {
+    +String review
+    +Integer rating
+  }
+}
+
+package "repository" {
+  interface BookingRepository
+  interface MemberRepository
+  interface LessonRepository
+}
+
+package "service" {
+  class BookingSystem
+}
+
+package "controller" {
+  class BookingController
+}
+
+' Relationships
+Lesson "1" -- "0..*" Booking : "bookings"
+Booking --> Member : "member"
+Booking --> Lesson : "lesson"
+
+BookingRepository ..|> "JpaRepository<Booking,Integer>" 
+MemberRepository ..|> "JpaRepository<Member,Integer>"
+LessonRepository ..|> "JpaRepository<Lesson,String>"
+
+BookingSystem --> BookingRepository : uses
+BookingSystem --> LessonRepository : uses
+BookingSystem --> MemberRepository : uses
+
+BookingController --> BookingSystem : uses
+BookingController --> BookingDto : returns
+BookingSystem --> Lesson : manages
+
+@enduml
